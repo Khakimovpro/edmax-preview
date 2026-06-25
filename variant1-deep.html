@@ -4,6 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>EdMax — переносим сайт с Тильды на Astro</title>
+<script>document.documentElement.classList.add('js');</script>
 <meta name="description" content="EdMax — студия скорости сайтов. Переносим сайты с Тильды на быстрый Astro: загрузка меньше секунды, рост в поиске, больше заявок." />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -54,16 +55,15 @@
     padding-right: 24px;
   }
 
-  /* ===== Анимация появления на скролле (лоск) ===== */
-  .reveal {
-    opacity: 0;
-    transform: translateY(18px);
-    transition: opacity .6s ease, transform .6s ease;
-  }
+  /* ===== Анимация появления на скролле (лоск).
+     Прячем блоки ТОЛЬКО при наличии JS (класс .js на <html>).
+     Без JS контент остаётся видимым — страница не ломается. ===== */
+  .reveal { transition: opacity .6s ease, transform .6s ease; }
+  .js .reveal { opacity: 0; transform: translateY(18px); }
   .reveal.is-in { opacity: 1; transform: none; }
   @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }
-    .reveal { opacity: 1; transform: none; transition: none; }
+    .js .reveal, .reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
   }
 
   /* ===== Верхняя панель ===== */
