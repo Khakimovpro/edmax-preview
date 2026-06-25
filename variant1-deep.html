@@ -64,6 +64,7 @@
   @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }
     .js .reveal, .reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
+    .stat-card__x { animation: none !important; }
   }
 
   /* ===== Верхняя панель ===== */
@@ -206,12 +207,31 @@
   @keyframes raceFast { from { width: 0 } to { width: 100% } }
   @keyframes raceSlow { 0%{width:0} 12%{width:14%} 22%{width:15%} 40%{width:42%} 52%{width:44%}
     70%{width:66%} 80%{width:68%} 100%{width:100%} }
-  /* тело лейна — скелет, который «появляется» когда загрузка дошла */
-  .lane__body { position: relative; padding: 22px; min-height: 168px; }
+  /* тело лейна — мини-страница, которая «появляется» когда загрузка дошла */
+  .lane__body { position: relative; padding: 22px; min-height: 252px; }
   .lane__content { opacity: 0; transition: opacity .35s ease; }
   .lane.done .lane__content { opacity: 1; }
   .lane__spin { position: absolute; inset: 0; display: grid; place-items: center; }
   .lane.done .lane__spin { display: none; }
+  /* мини-лендинг внутри браузера, чтобы не было пусто */
+  .mini__nav { display: flex; align-items: center; gap: 8px; padding-bottom: 12px; margin-bottom: 14px; border-bottom: 1px solid var(--line); }
+  .mini__logo { width: 48px; height: 14px; border-radius: 5px; background: #dbe2ea; }
+  .mini__sp { flex: 1; }
+  .mini__menu { width: 26px; height: 8px; border-radius: 4px; background: #eef1f5; }
+  .mini__btn { width: 124px; height: 34px; border-radius: 8px; margin-top: 16px; background: #cbd5e1; }
+  .lane--win .mini__btn { background: var(--accent); }
+  .mini__cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 16px; }
+  .mini__card { height: 48px; border-radius: 8px; background: #eef1f5; border: 1px solid var(--line); }
+  .lane--win .mini__card:first-child { background: var(--accent-soft); border-color: #d6e2ff; }
+  /* вердикт под мини-страницей */
+  .lane__verdict { margin-top: 16px; padding-top: 13px; border-top: 1px dashed var(--line);
+    font-size: 13.5px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+  .lane--slow .lane__verdict { color: #b91c1c; }
+  .lane--win .lane__verdict { color: var(--accent-hover); }
+  /* строка про конструкторы */
+  .race__constructors { text-align: center; max-width: 640px; margin: 22px auto 0;
+    font-size: 14.5px; color: var(--ink-soft); line-height: 1.55; }
+  .race__constructors b { color: var(--ink); }
   .spinner { width: 30px; height: 30px; border-radius: 50%; border: 3px solid #e6e8ec;
     border-top-color: var(--ink-mute); animation: spin .8s linear infinite; }
   .lane--win .spinner { border-top-color: var(--accent); }
@@ -265,9 +285,16 @@
   .stat-card { background: #fff; border: 1px solid var(--line); border-radius: var(--radius);
     padding: 24px 22px; box-shadow: var(--shadow); text-align: center; }
   .stat-card--hl { border: 1.5px solid var(--accent); box-shadow: 0 2px 4px rgba(37,99,235,.06), 0 16px 38px rgba(37,99,235,.12); }
-  .stat-card__num { font-size: 42px; font-weight: 800; letter-spacing: -0.03em; line-height: 1; color: var(--accent); }
-  .stat-card__label { margin-top: 10px; font-size: 14px; font-weight: 600; color: var(--ink); }
-  .stat-card__delta { margin-top: 6px; font-size: 13px; color: var(--ink-mute); }
+  /* ИКС — главный герой карточки: крупно и в акценте */
+  .stat-card__x { display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+    font-size: clamp(42px, 7vw, 54px); font-weight: 800; line-height: 1; letter-spacing: -0.03em; color: var(--accent); }
+  .stat-card__up { flex: 0 0 auto; color: var(--green); }
+  .stat-card__den { font-size: 22px; font-weight: 700; color: var(--ink-mute); margin-left: 2px; }
+  .stat-card__label { margin-top: 12px; font-size: 14.5px; font-weight: 700; color: var(--ink); }
+  .stat-card__ba { margin-top: 8px; font-size: 13.5px; color: var(--ink-soft); }
+  .stat-card__ba b { color: var(--ink); font-weight: 800; }
+  .stat-card.is-in .stat-card__x { animation: popx .55s cubic-bezier(.2,.8,.2,1.3) both; }
+  @keyframes popx { from { transform: scale(.55); opacity: 0 } to { transform: scale(1); opacity: 1 } }
   .case__behavior { margin: 22px auto 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
   .pill { display: inline-flex; align-items: center; gap: 8px; background: var(--green-soft);
     border: 1px solid #cdeedd; color: #15803d; font-size: 14px; font-weight: 600;
@@ -424,7 +451,7 @@
       <div class="section__head reveal">
         <span class="section__eyebrow">Скорость видно сразу</span>
         <h2>Гонка загрузки</h2>
-        <p>Слева — типичный сайт на конструкторе, справа — то же самое на Astro. Нажмите «Старт» и сравните.</p>
+        <p>Слева — сайт на Тильде или другом конструкторе, справа — он же на Astro. Нажмите «Старт» и сравните.</p>
       </div>
 
       <div class="race reveal">
@@ -434,7 +461,7 @@
             <div class="lane__top">
               <span class="lane__name">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#94a3b8" stroke-width="2"/><path d="M12 7v5l3 2" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/></svg>
-                Конструктор
+                Тильда и конструкторы
               </span>
               <span class="lane__badge">4,2 с</span>
             </div>
@@ -442,8 +469,14 @@
             <div class="lane__body">
               <div class="lane__spin"><span class="spinner"></span></div>
               <div class="lane__content">
+                <div class="mini__nav"><span class="mini__logo"></span><span class="mini__sp"></span><span class="mini__menu"></span><span class="mini__menu"></span><span class="mini__menu"></span></div>
                 <div class="sk sk--lg"></div><div class="sk sk--md"></div><div class="sk sk--sm"></div>
-                <div class="sk sk--btn" style="background:#cbd5e1"></div>
+                <div class="mini__btn"></div>
+                <div class="mini__cards"><span class="mini__card"></span><span class="mini__card"></span><span class="mini__card"></span></div>
+                <div class="lane__verdict">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M12 7v5l3 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                  Лишний код — грузится медленно
+                </div>
               </div>
             </div>
           </div>
@@ -461,8 +494,14 @@
             <div class="lane__body">
               <div class="lane__spin"><span class="spinner"></span></div>
               <div class="lane__content">
+                <div class="mini__nav"><span class="mini__logo"></span><span class="mini__sp"></span><span class="mini__menu"></span><span class="mini__menu"></span><span class="mini__menu"></span></div>
                 <div class="sk sk--lg"></div><div class="sk sk--md"></div><div class="sk sk--sm"></div>
-                <div class="sk sk--btn"></div>
+                <div class="mini__btn"></div>
+                <div class="mini__cards"><span class="mini__card"></span><span class="mini__card"></span><span class="mini__card"></span></div>
+                <div class="lane__verdict">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="m5 13 4 4L19 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  Чистый код — открылось мгновенно
+                </div>
               </div>
             </div>
           </div>
@@ -474,6 +513,8 @@
             Старт гонки
           </button>
         </div>
+
+        <p class="race__constructors">Так грузятся <b>Tilda</b>, Wix, Bitrix24, WordPress и другие конструкторы — лишний код и чужие скрипты замедляют каждую страницу. На Astro остаётся только нужное.</p>
 
         <!-- Полоска веса страницы (типичный пример) -->
         <div class="weight">
@@ -566,24 +607,24 @@
       <div class="case">
         <div class="case__stats">
           <div class="stat-card stat-card--hl reveal">
-            <div class="stat-card__num"><span class="count" data-from="87" data-to="177">87</span></div>
+            <div class="stat-card__x">×2<svg class="stat-card__up" width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M5 19 19 5M19 5h-9M19 5v9" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
             <div class="stat-card__label">Звонки с сайта в месяц</div>
-            <div class="stat-card__delta">87 → 177 — рост в 2 раза</div>
+            <div class="stat-card__ba">было 87 → стало <b class="count" data-from="87" data-to="177">87</b></div>
           </div>
           <div class="stat-card stat-card--hl reveal">
-            <div class="stat-card__num"><span class="count" data-from="41" data-to="82">41</span></div>
+            <div class="stat-card__x">×2<svg class="stat-card__up" width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M5 19 19 5M19 5h-9M19 5v9" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
             <div class="stat-card__label">Брони через сайт в месяц</div>
-            <div class="stat-card__delta">41 → 82 — рост в 2 раза</div>
+            <div class="stat-card__ba">было 41 → стало <b class="count" data-from="41" data-to="82">41</b></div>
           </div>
-          <div class="stat-card reveal">
-            <div class="stat-card__num"><span class="count" data-from="0" data-to="55" data-prefix="+" data-suffix="%">+0%</span></div>
+          <div class="stat-card stat-card--hl reveal">
+            <div class="stat-card__x"><span class="count" data-from="0" data-to="55" data-prefix="+" data-suffix="%">+0%</span></div>
             <div class="stat-card__label">Конверсия в звонок и бронь</div>
-            <div class="stat-card__delta">2,6% → 4,0%</div>
+            <div class="stat-card__ba">было 2,6% → стало 4,0%</div>
           </div>
           <div class="stat-card reveal">
-            <div class="stat-card__num"><span class="count" data-from="0" data-to="97">0</span></div>
-            <div class="stat-card__label">PageSpeed после переезда</div>
-            <div class="stat-card__delta">десктоп · SEO 100 из 100</div>
+            <div class="stat-card__x"><span class="count" data-from="0" data-to="97">0</span><span class="stat-card__den">/100</span></div>
+            <div class="stat-card__label">Скорость после переезда</div>
+            <div class="stat-card__ba">PageSpeed десктоп · SEO 100/100</div>
           </div>
         </div>
 
