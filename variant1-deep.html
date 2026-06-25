@@ -59,13 +59,25 @@
      Прячем блоки ТОЛЬКО при наличии JS (класс .js на <html>).
      Без JS контент остаётся видимым — страница не ломается. ===== */
   .reveal { transition: opacity .6s ease, transform .6s ease; }
-  .js .reveal { opacity: 0; transform: translateY(18px); }
+  .js .reveal { opacity: 0; transform: translateY(20px); }
   .reveal.is-in { opacity: 1; transform: none; }
+  /* стаггер — элементы появляются каскадом, а не все разом */
+  .hero .reveal:nth-child(2) { transition-delay: .06s; }
+  .hero .reveal:nth-child(3) { transition-delay: .12s; }
+  .hero .reveal:nth-child(4) { transition-delay: .18s; }
+  .hero .reveal:nth-child(5) { transition-delay: .24s; }
+  .hero .reveal:nth-child(6) { transition-delay: .30s; }
+  .why__grid .reveal:nth-child(2), .steps .reveal:nth-child(2), .case__stats .reveal:nth-child(2) { transition-delay: .09s; }
+  .why__grid .reveal:nth-child(3), .steps .reveal:nth-child(3), .case__stats .reveal:nth-child(3) { transition-delay: .18s; }
+  .steps .reveal:nth-child(4), .case__stats .reveal:nth-child(4) { transition-delay: .27s; }
   @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }
     .js .reveal, .reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
     .stat-card__x { animation: none !important; }
     .hdr-spin, .spinner { animation: none !important; }
+    .weight__fill { transition: none !important; }
+    .weight__fill::after { animation: none !important; display: none; }
+    .reveal { transition-delay: 0s !important; }
   }
 
   /* ===== Верхняя панель ===== */
@@ -276,9 +288,18 @@
   .weight__row { display: grid; grid-template-columns: 110px 1fr auto; align-items: center; gap: 14px; }
   .weight__name { font-size: 14px; font-weight: 600; color: var(--ink-soft); }
   .weight__track { height: 16px; border-radius: 999px; background: #eef1f5; overflow: hidden; }
-  .weight__fill { height: 100%; width: 0; border-radius: 999px; transition: width 1.2s cubic-bezier(.22,.61,.36,1); }
+  .weight__fill { position: relative; overflow: hidden; height: 100%; width: 0; border-radius: 999px;
+    transition: width 1.3s cubic-bezier(.22,.61,.36,1); }
   .weight__fill--slow { background: linear-gradient(90deg, #ef4444, #f97316); }
   .weight__fill--fast { background: linear-gradient(90deg, var(--accent), #06b6d4); }
+  /* заполняем, когда блок веса появляется (надёжно: у .weight есть площадь) */
+  .weight.is-in .weight__fill--slow { width: 90%; }
+  .weight.is-in .weight__fill--fast { width: 11%; }
+  /* живой блик, бегущий по полосе — ощущение анимированного прогресс-бара */
+  .weight__fill::after { content: ""; position: absolute; inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.55), transparent);
+    transform: translateX(-130%); animation: wshimmer 2s ease-in-out infinite; }
+  @keyframes wshimmer { 0% { transform: translateX(-130%) } 55%, 100% { transform: translateX(130%) } }
   .weight__val { font-size: 14px; font-weight: 800; color: var(--ink); min-width: 64px; text-align: right; }
   .weight__badge { display: inline-flex; align-items: center; gap: 7px; margin: 16px auto 0;
     background: var(--green-soft); border: 1px solid #cdeedd; color: #15803d; font-weight: 700;
@@ -370,10 +391,19 @@
   .form-done h3 { margin: 0 0 6px; font-size: 19px; }
   .form-done p { margin: 0; color: var(--ink-soft); font-size: 15px; }
 
-  /* ===== Футер ===== */
-  .footer { border-top: 1px solid var(--line); background: #fff; }
-  .footer__inner { display: flex; align-items: center; justify-content: space-between;
-    flex-wrap: wrap; gap: 8px; padding: 26px 0; font-size: 13px; color: var(--ink-mute); }
+  /* ===== Футер (тёмный, премиальный) ===== */
+  .footer { background: var(--ink); color: #cbd5e1; }
+  .footer__top { display: grid; grid-template-columns: 1.6fr 1fr 1fr; gap: 36px; padding: 56px 0 40px; }
+  @media (max-width: 760px) { .footer__top { grid-template-columns: 1fr; gap: 30px; } }
+  .footer__brand .brand { color: #fff; margin-bottom: 14px; }
+  .footer__tagline { font-size: 14px; color: #94a3b8; line-height: 1.65; max-width: 38ch; margin: 0; }
+  .footer__col h4 { margin: 0 0 16px; font-size: 13px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: #fff; }
+  .footer__col a, .footer__col span { display: block; font-size: 14px; color: #cbd5e1; margin-bottom: 11px; text-decoration: none; }
+  .footer__col a:hover { color: #fff; }
+  .footer__bottom { border-top: 1px solid rgba(255,255,255,.10); padding: 20px 0 30px; display: flex;
+    align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; font-size: 13px; color: #8b97a8; }
+  .footer__bottom a { color: #cbd5e1; }
+  .footer__bottom a:hover { color: #fff; }
 
   @media (max-width: 860px) {
     .browser__body { grid-template-columns: 1fr; }
@@ -565,7 +595,7 @@
         </div>
 
         <!-- Полоска веса страницы (типичный пример) -->
-        <div class="weight">
+        <div class="weight reveal">
           <div class="weight__row">
             <span class="weight__name">Тильда</span>
             <span class="weight__track"><span class="weight__fill weight__fill--slow" data-w="90"></span></span>
@@ -746,7 +776,7 @@
             <input id="f-site" name="site" type="text" placeholder="вашсайт.ру" />
           </div>
           <button class="btn btn--primary btn--lg" type="submit">Получить аудит скорости</button>
-          <p class="lead__priv">Нажимая кнопку, вы соглашаетесь на обработку контактов для ответа на заявку.</p>
+          <p class="lead__priv">Нажимая кнопку, вы соглашаетесь с <a href="privacy.html">политикой конфиденциальности</a>.</p>
         </form>
 
         <div class="form-done" id="formDone">
@@ -760,9 +790,33 @@
 
   <!-- ===== Футер ===== -->
   <footer class="footer">
-    <div class="wrap footer__inner">
-      <span>EdMax · студия скорости сайтов</span>
-      <span>Тильда → Astro</span>
+    <div class="wrap">
+      <div class="footer__top">
+        <div class="footer__brand">
+          <a class="brand" href="#top" aria-label="EdMax — наверх">
+            <span class="brand__mark" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z" fill="#fff"/></svg></span>
+            EdMax
+          </a>
+          <p class="footer__tagline">Переносим сайты с Тильды и других конструкторов на быстрый Astro. Дизайн сохраняем, скорость и позиции в поиске растут.</p>
+        </div>
+        <div class="footer__col">
+          <h4>Разделы</h4>
+          <a href="#why">Почему это деньги</a>
+          <a href="#how">Как проходит переезд</a>
+          <a href="#case">Наш кейс</a>
+          <a href="#final">Получить аудит</a>
+        </div>
+        <div class="footer__col">
+          <h4>Контакты</h4>
+          <a href="https://t.me/edmax" target="_blank" rel="noopener">Telegram</a>
+          <a href="mailto:hello@edmax.ru">hello@edmax.ru</a>
+          <span>Пенза · работаем по всей России</span>
+        </div>
+      </div>
+      <div class="footer__bottom">
+        <span>© 2026 EdMax · ИП Фролов М. В. · ОГРНИП 322583500036950</span>
+        <a href="privacy.html">Политика конфиденциальности</a>
+      </div>
     </div>
   </footer>
 
@@ -812,8 +866,9 @@
     document.querySelectorAll('.count').forEach(function (el) { io.observe(el); });
   })();
 
-  // ===== Полоска веса (заполняем при появлении) =====
+  // ===== Полоска веса: ширина задаётся через CSS (.weight.is-in), JS-наблюдатель не нужен =====
   (function () {
+    return; // оставлено отключённым: ширину тянет CSS при появлении блока
     var fills = document.querySelectorAll('.weight__fill');
     if (!fills.length) return;
     var io = new IntersectionObserver(function (entries) {
