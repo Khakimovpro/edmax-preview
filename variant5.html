@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EdMax — перенос сайта с Тильды на Astro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* ── Палитра: премиум-агентство, благородный зелёный акцент ── */
+  :root{
+    --bg:#F5F3EF;          /* костяной фон */
+    --ink:#1c1c1c;         /* графитовый текст */
+    --ink-soft:#55524c;    /* приглушённый текст */
+    --ink-faint:#8a867e;   /* совсем светлый, для лейблов */
+    --accent:#0f5132;      /* глубокий лесной зелёный */
+    --accent-deep:#0b3b25; /* зелёный для hover */
+    --line:rgba(28,28,28,.14);  /* волосяная линия */
+    --line-soft:rgba(28,28,28,.08);
+    --paper:#FBFAF7;       /* чуть светлее фона для карточек */
+    --maxw:1180px;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Inter',system-ui,-apple-system,sans-serif;
+    font-size:17px;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+  }
+
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 28px}
+
+  /* ── Мелкий капс-лейбл с широким трекингом ── */
+  .eyebrow{
+    font-size:12px;
+    font-weight:600;
+    letter-spacing:.22em;
+    text-transform:uppercase;
+    color:var(--accent);
+  }
+  .label-muted{color:var(--ink-faint)}
+
+  /* ── Заголовки — изящный serif ── */
+  h1,h2,h3{font-family:'Fraunces',Georgia,serif;font-weight:500;letter-spacing:-.01em;line-height:1.08}
+
+  /* ── Кнопки: строгая, прямоугольная, скромный радиус ── */
+  .btn{
+    display:inline-flex;align-items:center;gap:.6em;
+    font-family:'Inter',sans-serif;
+    font-size:15px;font-weight:600;
+    text-decoration:none;cursor:pointer;
+    border:1px solid transparent;border-radius:6px;
+    padding:15px 28px;
+    transition:background .2s ease,border-color .2s ease,color .2s ease,transform .2s ease;
+  }
+  .btn-primary{background:var(--accent);color:#fff}
+  .btn-primary:hover{background:var(--accent-deep)}
+  .btn-primary:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+  .btn-primary .arrow{transition:transform .2s ease}
+  .btn-primary:hover .arrow{transform:translateX(3px)}
+
+  /* ── Тихая вторичная ссылка, подчёркнутая ── */
+  .link-quiet{
+    display:inline-flex;align-items:center;gap:.5em;
+    font-size:15px;font-weight:500;color:var(--ink);
+    text-decoration:none;
+    padding:4px 0;
+    border-bottom:1px solid var(--line);
+    transition:border-color .2s ease,color .2s ease;
+  }
+  .link-quiet:hover{color:var(--accent);border-color:var(--accent)}
+  .link-quiet:focus-visible{outline:2px solid var(--accent);outline-offset:4px}
+
+  /* ── Волосяной разделитель ── */
+  .hairline{height:1px;background:var(--line);border:0}
+
+  /* ════════════ ТОП-БАР ════════════ */
+  header{border-bottom:1px solid var(--line)}
+  .topbar{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:22px 0;
+  }
+  .wordmark{
+    font-family:'Fraunces',serif;
+    font-weight:600;font-size:23px;letter-spacing:-.01em;
+    color:var(--ink);text-decoration:none;
+    display:inline-flex;align-items:baseline;
+  }
+  .wordmark .dot{color:var(--accent)}
+  .topbar-meta{
+    font-size:12px;font-weight:600;letter-spacing:.18em;
+    text-transform:uppercase;color:var(--ink-faint);
+  }
+  @media (max-width:560px){.topbar-meta{display:none}}
+
+  /* ════════════ HERO ════════════ */
+  .hero{padding:78px 0 88px}
+  .hero-grid{
+    display:grid;
+    grid-template-columns:1.15fr .85fr;
+    gap:64px;
+    align-items:center;
+  }
+  .hero-eyebrow{margin-bottom:30px}
+  .hero h1{
+    font-size:clamp(40px,5.6vw,68px);
+    margin-bottom:30px;
+  }
+  .hero h1 .accent{color:var(--accent);font-style:italic;font-weight:400}
+  .hero-sub{
+    font-size:18px;color:var(--ink-soft);
+    max-width:42ch;margin-bottom:38px;
+  }
+
+  /* ── Бейдж-метрика: маленький лейбл в рамке ── */
+  .metric-badge{
+    display:inline-flex;align-items:center;gap:.65em;
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:9px 16px;
+    font-size:12.5px;font-weight:600;
+    letter-spacing:.06em;text-transform:uppercase;
+    color:var(--ink-soft);
+    margin-bottom:40px;
+  }
+  .metric-badge .pulse{
+    width:8px;height:8px;border-radius:50%;
+    background:var(--accent);flex:none;
+  }
+
+  .hero-cta{display:flex;align-items:center;gap:28px;flex-wrap:wrap}
+
+  /* ── Тонкая SVG-графика: окно браузера + линия скорости ── */
+  .hero-art{position:relative}
+  .browser-frame{
+    width:100%;height:auto;display:block;
+    filter:drop-shadow(0 22px 40px rgba(15,81,50,.10));
+  }
+
+  /* ════════════ БЛОК 2 — Было → Стало ════════════ */
+  .compare{padding:24px 0 96px}
+  .section-head{
+    display:flex;align-items:baseline;justify-content:space-between;
+    gap:24px;flex-wrap:wrap;
+    padding-top:64px;margin-bottom:46px;
+  }
+  .section-head h2{font-size:clamp(30px,4vw,46px)}
+  .section-head .eyebrow{margin-bottom:14px}
+
+  /* ── Сравнение как изящная таблица ── */
+  .compare-table{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    border:1px solid var(--line);
+    border-radius:10px;
+    overflow:hidden;
+    background:var(--paper);
+  }
+  .col{padding:38px 40px 42px}
+  .col-was{border-right:1px solid var(--line)}
+  .col-head{
+    display:flex;align-items:center;justify-content:space-between;
+    margin-bottom:26px;
+  }
+  .col-tag{
+    font-size:11px;font-weight:600;letter-spacing:.2em;
+    text-transform:uppercase;color:var(--ink-faint);
+  }
+  .col-platform{
+    font-family:'Fraunces',serif;font-size:18px;font-weight:500;
+    color:var(--ink);
+  }
+  .col-was .col-platform{color:var(--ink-soft)}
+  .col-now .col-platform{color:var(--accent)}
+
+  /* ── Крупные serif-цифры PageSpeed ── */
+  .score{
+    font-family:'Fraunces',serif;
+    font-weight:400;line-height:1;
+    font-size:clamp(56px,9vw,88px);
+    letter-spacing:-.02em;
+    margin-bottom:6px;
+  }
+  .col-was .score{color:var(--ink-soft)}
+  .col-now .score{color:var(--accent)}
+  .score-label{
+    font-size:11px;font-weight:600;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--ink-faint);
+    margin-bottom:30px;
+  }
+  .spec-rows{list-style:none}
+  .spec-rows li{
+    display:flex;justify-content:space-between;align-items:baseline;
+    gap:16px;
+    padding:13px 0;
+    border-top:1px solid var(--line-soft);
+    font-size:15.5px;
+  }
+  .spec-rows li:last-child{border-bottom:1px solid var(--line-soft)}
+  .spec-key{color:var(--ink-faint);font-size:13px;letter-spacing:.04em;text-transform:uppercase}
+  .spec-val{color:var(--ink);font-weight:500;text-align:right}
+  .col-now .spec-val{color:var(--accent-deep)}
+
+  /* ── Стрелка-переход между колонками (desktop) ── */
+  .compare-shell{position:relative}
+  .flow-arrow{
+    position:absolute;top:50%;left:50%;
+    transform:translate(-50%,-50%);
+    width:54px;height:54px;border-radius:50%;
+    background:var(--accent);
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 10px 26px rgba(15,81,50,.28);
+    z-index:2;
+  }
+  .flow-arrow svg{display:block}
+
+  /* ── Список-галочки с тонкими чекмарками ── */
+  .checks{
+    margin-top:48px;
+    display:grid;grid-template-columns:repeat(3,1fr);
+    gap:0;
+    border-top:1px solid var(--line);
+  }
+  .check{
+    display:flex;align-items:flex-start;gap:14px;
+    padding:28px 30px 28px 0;
+  }
+  .check + .check{padding-left:30px;border-left:1px solid var(--line-soft)}
+  .check-mark{
+    flex:none;margin-top:2px;
+    width:24px;height:24px;border-radius:50%;
+    border:1px solid var(--accent);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .check-text{font-size:16px;color:var(--ink);line-height:1.4}
+
+  .compare-cta{
+    margin-top:56px;
+    display:flex;align-items:center;gap:24px;flex-wrap:wrap;
+  }
+  .compare-cta .note{font-size:14px;color:var(--ink-faint)}
+
+  /* ════════════ FOOTER ════════════ */
+  footer{border-top:1px solid var(--line);padding:30px 0}
+  .foot{
+    display:flex;align-items:center;justify-content:space-between;
+    gap:16px;flex-wrap:wrap;
+    font-size:13px;color:var(--ink-faint);letter-spacing:.02em;
+  }
+  .foot .wordmark{font-size:17px}
+
+  /* ════════════ АДАПТИВ ════════════ */
+  @media (max-width:920px){
+    .hero-grid{grid-template-columns:1fr;gap:48px}
+    .hero-art{max-width:520px}
+  }
+  @media (max-width:760px){
+    body{font-size:16px}
+    .wrap{padding:0 20px}
+    .hero{padding:54px 0 60px}
+    .hero-eyebrow{margin-bottom:22px}
+    .hero h1{margin-bottom:22px}
+    .hero-sub{margin-bottom:30px;font-size:17px}
+    .metric-badge{margin-bottom:30px}
+    .compare{padding:8px 0 64px}
+    .section-head{padding-top:48px;margin-bottom:34px}
+
+    /* таблица сравнения в одну колонку */
+    .compare-table{grid-template-columns:1fr}
+    .col-was{border-right:0;border-bottom:1px solid var(--line)}
+    .flow-arrow{
+      top:auto;bottom:-4px;left:50%;
+      transform:translate(-50%,50%) rotate(90deg);
+    }
+    /* галочки в столбик */
+    .checks{grid-template-columns:1fr;margin-top:40px}
+    .check{padding:22px 0}
+    .check + .check{padding-left:0;border-left:0;border-top:1px solid var(--line-soft)}
+  }
+  @media (max-width:480px){
+    .col{padding:30px 24px 34px}
+    .hero-cta{gap:18px}
+    .btn{width:100%;justify-content:center}
+    .link-quiet{align-self:flex-start}
+    .compare-cta .btn{width:100%;justify-content:center}
+  }
+
+  @media (prefers-reduced-motion:reduce){
+    *{transition:none!important}
+  }
+</style>
+</head>
+<body>
+
+  <!-- ════════════ ТОП-БАР ════════════ -->
+  <header>
+    <div class="wrap">
+      <div class="topbar">
+        <a href="#" class="wordmark">EdMax<span class="dot">.</span></a>
+        <span class="topbar-meta">Студия скорости сайтов</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ════════════ HERO ════════════ -->
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-grid">
+          <!-- Левая колонка: текст -->
+          <div class="hero-copy">
+            <p class="eyebrow hero-eyebrow">EdMax · студия скорости сайтов</p>
+            <h1>Переносим сайт<br>с Тильды на <span class="accent">Astro</span></h1>
+            <p class="hero-sub">Грузится меньше чем за секунду и держит позиции в поиске. Внешний вид сохраняем полностью — вы получаете тот же сайт на быстром движке.</p>
+
+            <div class="metric-badge">
+              <span class="pulse"></span>
+              PageSpeed 98+ · загрузка меньше 1&nbsp;секунды
+            </div>
+
+            <div class="hero-cta">
+              <a href="#" class="btn btn-primary">
+                Получить аудит скорости
+                <svg class="arrow" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                  <path d="M3 8h9M8.5 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </a>
+              <a href="#" class="link-quiet">Смотреть примеры работ</a>
+            </div>
+          </div>
+
+          <!-- Правая колонка: тонкая SVG-графика, окно браузера + линия скорости -->
+          <div class="hero-art" aria-hidden="true">
+            <svg class="browser-frame" viewBox="0 0 440 320" fill="none" xmlns="http://www.w3.org/2000/svg" role="img">
+              <!-- рамка окна -->
+              <rect x="1" y="1" width="438" height="318" rx="14" fill="#FBFAF7" stroke="#1c1c1c" stroke-opacity="0.14"/>
+              <!-- адресная строка -->
+              <line x1="1" y1="48" x2="439" y2="48" stroke="#1c1c1c" stroke-opacity="0.12"/>
+              <circle cx="26" cy="25" r="4.5" fill="#1c1c1c" fill-opacity="0.16"/>
+              <circle cx="44" cy="25" r="4.5" fill="#1c1c1c" fill-opacity="0.16"/>
+              <circle cx="62" cy="25" r="4.5" fill="#0f5132" fill-opacity="0.55"/>
+              <rect x="92" y="17" width="300" height="16" rx="8" fill="#1c1c1c" fill-opacity="0.05"/>
+              <rect x="104" y="22" width="120" height="6" rx="3" fill="#1c1c1c" fill-opacity="0.16"/>
+
+              <!-- метка скорости -->
+              <text x="32" y="92" font-family="Inter,sans-serif" font-size="11" letter-spacing="2" fill="#8a867e">СКОРОСТЬ ЗАГРУЗКИ</text>
+
+              <!-- восходящий график скорости -->
+              <polyline points="32,250 110,232 170,196 240,150 320,108 408,76"
+                        fill="none" stroke="#0f5132" stroke-width="2.4"
+                        stroke-linecap="round" stroke-linejoin="round"/>
+              <!-- лёгкая заливка под линией -->
+              <path d="M32,250 110,232 170,196 240,150 320,108 408,76 408,288 32,288 Z"
+                    fill="#0f5132" fill-opacity="0.05"/>
+              <!-- узлы -->
+              <circle cx="32" cy="250" r="3.5" fill="#0f5132"/>
+              <circle cx="170" cy="196" r="3.5" fill="#0f5132"/>
+              <circle cx="320" cy="108" r="3.5" fill="#0f5132"/>
+              <circle cx="408" cy="76" r="5" fill="#FBFAF7" stroke="#0f5132" stroke-width="2.4"/>
+
+              <!-- базовая линия -->
+              <line x1="32" y1="288" x2="408" y2="288" stroke="#1c1c1c" stroke-opacity="0.10"/>
+
+              <!-- подпись 98 у вершины -->
+              <text x="378" y="64" font-family="Fraunces,Georgia,serif" font-size="26" fill="#0f5132">98</text>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════════ БЛОК 2 — Было → Стало ════════════ -->
+    <section class="compare">
+      <div class="wrap">
+        <hr class="hairline">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Было → Стало</p>
+            <h2>Что меняется после переезда</h2>
+          </div>
+          <span class="topbar-meta label-muted">Тильда → Astro</span>
+        </div>
+
+        <div class="compare-shell">
+          <div class="compare-table">
+            <!-- БЫЛО -->
+            <div class="col col-was">
+              <div class="col-head">
+                <span class="col-tag">Было</span>
+                <span class="col-platform">Тильда</span>
+              </div>
+              <div class="score">47</div>
+              <div class="score-label">PageSpeed</div>
+              <ul class="spec-rows">
+                <li><span class="spec-key">Загрузка</span><span class="spec-val">4,2 секунды</span></li>
+                <li><span class="spec-key">Код</span><span class="spec-val">тяжёлый код</span></li>
+              </ul>
+            </div>
+
+            <!-- СТАЛО -->
+            <div class="col col-now">
+              <div class="col-head">
+                <span class="col-tag">Стало</span>
+                <span class="col-platform">Astro</span>
+              </div>
+              <div class="score">98</div>
+              <div class="score-label">PageSpeed</div>
+              <ul class="spec-rows">
+                <li><span class="spec-key">Загрузка</span><span class="spec-val">0,8 секунды</span></li>
+                <li><span class="spec-key">Код</span><span class="spec-val">чистый статический код</span></li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- стрелка перехода -->
+          <div class="flow-arrow" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 16 16" fill="none">
+              <path d="M3 8h9M8.5 4l4 4-4 4" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+        </div>
+
+        <!-- галочки -->
+        <div class="checks">
+          <div class="check">
+            <span class="check-mark" aria-hidden="true">
+              <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
+                <path d="M2.5 7.5l3 3 6-7" stroke="#0f5132" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+            <span class="check-text">Дизайн один в один</span>
+          </div>
+          <div class="check">
+            <span class="check-mark" aria-hidden="true">
+              <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
+                <path d="M2.5 7.5l3 3 6-7" stroke="#0f5132" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+            <span class="check-text">Те же тексты, формы и заявки</span>
+          </div>
+          <div class="check">
+            <span class="check-mark" aria-hidden="true">
+              <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
+                <path d="M2.5 7.5l3 3 6-7" stroke="#0f5132" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+            <span class="check-text">Домен, аналитика и метрики на месте</span>
+          </div>
+        </div>
+
+        <div class="compare-cta">
+          <a href="#" class="btn btn-primary">
+            Получить аудит скорости
+            <svg class="arrow" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M3 8h9M8.5 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </a>
+          <span class="note">Бесплатно, за один рабочий день</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ════════════ FOOTER ════════════ -->
+  <footer>
+    <div class="wrap">
+      <div class="foot">
+        <a href="#" class="wordmark">EdMax<span class="dot">.</span></a>
+        <span>Перенос сайтов с Тильды на Astro · Россия и СНГ</span>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EdMax — перенос сайта с Тильды на Astro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#ffffff;
+    --bg-cool:#f4f6f9;
+    --ink:#0f172a;
+    --ink-soft:#475569;
+    --ink-faint:#94a3b8;
+    --line:#e2e8f0;
+    --indigo:#4f46e5;
+    --cyan:#06b6d4;
+    --green:#10b981;
+    --red:#ef4444;
+    --grad:linear-gradient(95deg,#4f46e5 0%,#06b6d4 100%);
+    --grad-soft:linear-gradient(95deg,rgba(79,70,229,.10),rgba(6,182,212,.10));
+    --shadow-sm:0 1px 2px rgba(15,23,42,.06),0 2px 8px rgba(15,23,42,.05);
+    --shadow-md:0 6px 24px rgba(15,23,42,.08),0 2px 6px rgba(15,23,42,.05);
+    --shadow-cta:0 8px 24px rgba(79,70,229,.32);
+    --r:16px;
+    --r-lg:24px;
+    --sans:'Manrope',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:var(--sans);
+    color:var(--ink);
+    background:var(--bg);
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:0 24px}
+  .mono{font-family:var(--mono);font-feature-settings:"tnum" 1;font-variant-numeric:tabular-nums}
+  .grad-text{background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent}
+
+  /* ---------- TOP BAR ---------- */
+  .topbar{
+    position:sticky;top:0;z-index:50;
+    background:rgba(255,255,255,.82);
+    backdrop-filter:saturate(180%) blur(12px);
+    -webkit-backdrop-filter:saturate(180%) blur(12px);
+    border-bottom:1px solid var(--line);
+  }
+  .topbar .wrap{display:flex;align-items:center;justify-content:space-between;height:66px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:21px;letter-spacing:-.02em}
+  .brand .logo{display:grid;place-items:center;width:34px;height:34px;border-radius:9px;background:var(--grad);box-shadow:var(--shadow-cta)}
+  .brand .logo svg{display:block}
+  .brand b{color:var(--ink)}
+  .topbar .tag{
+    font-family:var(--mono);font-size:12px;font-weight:600;color:var(--indigo);
+    background:var(--grad-soft);border:1px solid rgba(79,70,229,.18);
+    padding:6px 11px;border-radius:999px;white-space:nowrap;
+  }
+
+  /* ---------- HERO ---------- */
+  .hero{position:relative;overflow:hidden;background:linear-gradient(180deg,#ffffff 0%,var(--bg-cool) 100%)}
+  .hero::before{
+    content:"";position:absolute;inset:0;pointer-events:none;
+    background:
+      radial-gradient(540px 360px at 88% 8%,rgba(6,182,212,.12),transparent 60%),
+      radial-gradient(620px 420px at 6% 30%,rgba(79,70,229,.10),transparent 60%);
+  }
+  .hero .wrap{position:relative;z-index:1}
+  .hero-grid{
+    display:grid;grid-template-columns:1.05fr .95fr;gap:56px;align-items:center;
+    padding:72px 0 84px;
+  }
+  .eyebrow{
+    display:inline-flex;align-items:center;gap:9px;
+    font-family:var(--mono);font-size:13px;font-weight:600;color:var(--indigo);
+    background:#fff;border:1px solid var(--line);box-shadow:var(--shadow-sm);
+    padding:8px 14px;border-radius:999px;margin-bottom:22px;
+  }
+  .eyebrow .dot{width:8px;height:8px;border-radius:50%;background:var(--grad);box-shadow:0 0 0 4px rgba(6,182,212,.16)}
+  h1{
+    font-size:clamp(34px,5vw,56px);line-height:1.06;font-weight:800;letter-spacing:-.025em;
+    margin-bottom:20px;
+  }
+  h1 .grad-text{display:inline-block}
+  .subhead{font-size:clamp(16px,1.6vw,19px);color:var(--ink-soft);max-width:560px;margin-bottom:28px}
+
+  .metric-badge{
+    display:inline-flex;align-items:center;gap:14px;
+    background:#fff;border:1px solid var(--line);box-shadow:var(--shadow-sm);
+    border-radius:14px;padding:12px 16px;margin-bottom:30px;
+  }
+  .metric-badge .ico{display:grid;place-items:center;width:34px;height:34px;border-radius:9px;background:var(--grad-soft)}
+  .metric-badge .txt{display:flex;flex-direction:column;line-height:1.25}
+  .metric-badge .big{font-family:var(--mono);font-weight:700;font-size:15px;color:var(--ink)}
+  .metric-badge .sub{font-size:12.5px;color:var(--ink-faint)}
+
+  .cta-row{display:flex;flex-wrap:wrap;gap:14px;align-items:center}
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:10px;
+    font-family:var(--sans);font-weight:700;font-size:16px;
+    padding:15px 26px;border-radius:12px;border:1.5px solid transparent;
+    cursor:pointer;text-decoration:none;transition:transform .15s ease,box-shadow .2s ease,background .2s ease,border-color .2s ease;
+    white-space:nowrap;
+  }
+  .btn-primary{color:#fff;background:var(--grad);box-shadow:var(--shadow-cta)}
+  .btn-primary:hover{transform:translateY(-2px);box-shadow:0 12px 30px rgba(79,70,229,.40)}
+  .btn-primary:focus-visible{outline:3px solid rgba(6,182,212,.45);outline-offset:2px}
+  .btn-primary .arrow{transition:transform .2s ease}
+  .btn-primary:hover .arrow{transform:translateX(4px)}
+  .btn-secondary{color:var(--ink);background:#fff;border-color:var(--line);box-shadow:var(--shadow-sm)}
+  .btn-secondary:hover{transform:translateY(-2px);border-color:#cbd5e1;box-shadow:var(--shadow-md)}
+  .btn-secondary:focus-visible{outline:3px solid rgba(79,70,229,.35);outline-offset:2px}
+
+  /* ---------- HERO GAUGE VISUAL ---------- */
+  .gauge-card{
+    position:relative;background:#fff;border:1px solid var(--line);
+    border-radius:var(--r-lg);box-shadow:var(--shadow-md);
+    padding:30px 30px 26px;justify-self:center;width:100%;max-width:430px;
+  }
+  .gauge-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+  .gauge-head .lbl{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--ink-faint);letter-spacing:.02em}
+  .gauge-head .pill{
+    font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;
+    background:var(--green);padding:3px 9px;border-radius:999px;display:inline-flex;align-items:center;gap:5px;
+  }
+  .gauge-svg{display:block;width:100%;height:auto}
+  .gauge-num{font-family:var(--mono);font-weight:700}
+  /* needle subtle settle animation */
+  @keyframes needleSettle{0%{transform:rotate(-118deg)}70%{transform:rotate(56deg)}85%{transform:rotate(48deg)}100%{transform:rotate(52deg)}}
+  .needle{transform-box:fill-box;transform-origin:50% 92%;animation:needleSettle 1.6s cubic-bezier(.22,1,.36,1) .25s both}
+  @keyframes arcGrow{from{stroke-dashoffset:392}to{stroke-dashoffset:8}}
+  .arc-fg{stroke-dasharray:392;animation:arcGrow 1.6s cubic-bezier(.22,1,.36,1) .25s both}
+  @media (prefers-reduced-motion:reduce){
+    .needle{animation:none;transform:rotate(52deg)}
+    .arc-fg{animation:none;stroke-dashoffset:8}
+  }
+  .gauge-foot{display:flex;justify-content:space-between;margin-top:14px;padding-top:16px;border-top:1px solid var(--line)}
+  .gf-item{display:flex;flex-direction:column;gap:2px}
+  .gf-item .v{font-family:var(--mono);font-weight:700;font-size:18px;color:var(--ink)}
+  .gf-item .v.grad{background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .gf-item .k{font-size:11.5px;color:var(--ink-faint)}
+  /* thin speed bar */
+  .speedbar{height:6px;border-radius:999px;background:var(--bg-cool);overflow:hidden;margin-top:18px;position:relative}
+  .speedbar i{position:absolute;inset:0;width:96%;border-radius:999px;background:var(--grad)}
+  @keyframes barGrow{from{width:0}to{width:96%}}
+  .speedbar i{animation:barGrow 1.6s cubic-bezier(.22,1,.36,1) .25s both}
+  @media (prefers-reduced-motion:reduce){.speedbar i{animation:none;width:96%}}
+
+  /* ---------- BLOCK 2 ---------- */
+  .compare{padding:84px 0;background:var(--bg)}
+  .sec-head{text-align:center;max-width:680px;margin:0 auto 48px}
+  .sec-tag{
+    font-family:var(--mono);font-size:12px;font-weight:600;color:var(--indigo);
+    background:var(--grad-soft);border:1px solid rgba(79,70,229,.16);
+    padding:6px 13px;border-radius:999px;display:inline-block;margin-bottom:16px;
+  }
+  .sec-head h2{font-size:clamp(27px,3.4vw,40px);font-weight:800;letter-spacing:-.02em;line-height:1.12}
+
+  /* big number comparison */
+  .scoreboard{
+    display:flex;align-items:center;justify-content:center;gap:clamp(20px,4vw,56px);
+    flex-wrap:wrap;margin-bottom:44px;
+  }
+  .score{display:flex;flex-direction:column;align-items:center;gap:6px}
+  .score .n{font-family:var(--mono);font-weight:700;font-size:clamp(58px,10vw,104px);line-height:1}
+  .score.was .n{color:var(--ink-faint)}
+  .score.now .n{background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .score .cap{font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-faint)}
+  .arrow-mid{display:grid;place-items:center}
+  .arrow-mid svg{display:block}
+
+  .cards{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:44px}
+  .card{
+    background:#fff;border:1px solid var(--line);border-radius:var(--r-lg);
+    padding:28px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden;
+    transition:transform .18s ease,box-shadow .2s ease;
+  }
+  .card:hover{transform:translateY(-3px);box-shadow:var(--shadow-md)}
+  .card .strip{position:absolute;top:0;left:0;right:0;height:4px}
+  .card.was .strip{background:linear-gradient(90deg,#f87171,#ef4444)}
+  .card.now .strip{background:var(--grad)}
+  .card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+  .card-top .name{font-weight:800;font-size:18px;letter-spacing:-.01em}
+  .badge{font-family:var(--mono);font-size:11px;font-weight:700;padding:5px 11px;border-radius:999px;display:inline-flex;align-items:center;gap:6px}
+  .badge.slow{color:#b91c1c;background:#fee2e2}
+  .badge.fast{color:#047857;background:#d1fae5}
+  .stat{display:flex;align-items:center;justify-content:space-between;padding:13px 0;border-top:1px solid var(--line)}
+  .stat:first-of-type{border-top:none}
+  .stat .label{font-size:14.5px;color:var(--ink-soft)}
+  .stat .val{font-family:var(--mono);font-weight:700;font-size:16px}
+  .card.was .stat .val{color:var(--ink-soft)}
+  .card.now .stat .val.hi{background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .card.now .stat .val{color:var(--ink)}
+  /* mini meter inside each stat-less footer */
+  .meter{height:7px;border-radius:999px;background:var(--bg-cool);overflow:hidden;margin-top:18px}
+  .meter i{display:block;height:100%;border-radius:999px}
+  .card.was .meter i{width:47%;background:linear-gradient(90deg,#fca5a5,#ef4444)}
+  .card.now .meter i{width:98%;background:var(--grad)}
+  .meter-cap{display:flex;justify-content:space-between;margin-top:8px;font-family:var(--mono);font-size:11px;color:var(--ink-faint)}
+
+  /* checklist */
+  .checklist{
+    max-width:780px;margin:0 auto 40px;
+    display:grid;grid-template-columns:repeat(3,1fr);gap:16px;
+  }
+  .check{
+    display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--line);
+    border-radius:14px;padding:16px 18px;box-shadow:var(--shadow-sm);
+    font-weight:600;font-size:15px;color:var(--ink);
+  }
+  .check .ck{flex:0 0 auto;display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--grad);box-shadow:0 4px 12px rgba(6,182,212,.30)}
+
+  .compare .cta-wrap{text-align:center}
+
+  /* ---------- FOOTER ---------- */
+  footer{border-top:1px solid var(--line);background:var(--bg-cool)}
+  footer .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:22px 24px;flex-wrap:wrap}
+  footer .brand{font-size:17px}
+  footer .fnote{font-family:var(--mono);font-size:12px;color:var(--ink-faint)}
+
+  /* ---------- RESPONSIVE ---------- */
+  @media (max-width:920px){
+    .hero-grid{grid-template-columns:1fr;gap:40px;padding:52px 0 60px}
+    .gauge-card{order:-1;max-width:400px}
+    .subhead{max-width:none}
+    .checklist{grid-template-columns:1fr;max-width:460px}
+  }
+  @media (max-width:560px){
+    .wrap{padding:0 18px}
+    .topbar .tag{display:none}
+    .hero-grid{padding:40px 0 48px}
+    .cta-row{flex-direction:column;align-items:stretch}
+    .btn{width:100%}
+    .cards{grid-template-columns:1fr;gap:18px}
+    .scoreboard{gap:14px}
+    .arrow-mid svg{transform:rotate(90deg)}
+    .compare{padding:60px 0}
+    .gauge-foot{flex-wrap:wrap;gap:14px}
+    .gf-item{flex:1 1 40%}
+  }
+</style>
+</head>
+<body>
+
+  <!-- ===== TOP BAR ===== -->
+  <header class="topbar">
+    <div class="wrap">
+      <div class="brand">
+        <span class="logo" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <path d="M13 2 4 13h6l-1 9 9-13h-6l1-7Z" fill="#fff"/>
+          </svg>
+        </span>
+        <span>Ed<b>Max</b></span>
+      </div>
+      <span class="tag">PageSpeed&nbsp;98+&nbsp;·&nbsp;&lt;&nbsp;1&nbsp;сек</span>
+    </div>
+  </header>
+
+  <!-- ===== BLOCK 1 — HERO ===== -->
+  <section class="hero">
+    <div class="wrap">
+      <div class="hero-grid">
+
+        <!-- left: text -->
+        <div class="hero-copy">
+          <span class="eyebrow"><span class="dot"></span> EdMax · студия скорости сайтов</span>
+          <h1>Переносим сайт с&nbsp;Тильды на&nbsp;<span class="grad-text">Astro</span></h1>
+          <p class="subhead">Грузится меньше чем за секунду и держит позиции в поиске. Внешний вид сохраняем полностью — вы получаете тот же сайт на быстром движке.</p>
+
+          <div class="metric-badge">
+            <span class="ico" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4f46e5" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M13 2 4 13h6l-1 9 9-13h-6l1-7Z"/>
+              </svg>
+            </span>
+            <span class="txt">
+              <span class="big">PageSpeed 98+</span>
+              <span class="sub">загрузка меньше 1 секунды</span>
+            </span>
+          </div>
+
+          <div class="cta-row">
+            <a href="#audit" class="btn btn-primary">
+              Получить аудит скорости
+              <svg class="arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </a>
+            <a href="#works" class="btn btn-secondary">Смотреть примеры работ</a>
+          </div>
+        </div>
+
+        <!-- right: speed gauge card -->
+        <div class="gauge-card">
+          <div class="gauge-head">
+            <span class="lbl">PageSpeed Insights</span>
+            <span class="pill">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+              FAST
+            </span>
+          </div>
+
+          <svg class="gauge-svg" viewBox="0 0 280 180" role="img" aria-label="Оценка скорости PageSpeed 98 из 100">
+            <defs>
+              <linearGradient id="arcGrad" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0" stop-color="#4f46e5"/>
+                <stop offset="1" stop-color="#06b6d4"/>
+              </linearGradient>
+              <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+                <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#06b6d4" flood-opacity="0.30"/>
+              </filter>
+            </defs>
+
+            <!-- track -->
+            <path d="M 40 150 A 100 100 0 1 1 240 150" fill="none" stroke="#eef1f6" stroke-width="16" stroke-linecap="round"/>
+            <!-- progress arc (semi-circle path length ~ 392) -->
+            <path class="arc-fg" d="M 40 150 A 100 100 0 1 1 240 150" fill="none" stroke="url(#arcGrad)" stroke-width="16" stroke-linecap="round" filter="url(#soft)"/>
+
+            <!-- tick marks -->
+            <g stroke="#cbd5e1" stroke-width="2" stroke-linecap="round">
+              <line x1="40" y1="150" x2="52" y2="146"/>
+              <line x1="140" y1="50" x2="140" y2="63"/>
+              <line x1="240" y1="150" x2="228" y2="146"/>
+            </g>
+
+            <!-- needle -->
+            <g class="needle">
+              <line x1="140" y1="150" x2="140" y2="74" stroke="#0f172a" stroke-width="5" stroke-linecap="round"/>
+              <circle cx="140" cy="150" r="10" fill="#0f172a"/>
+              <circle cx="140" cy="150" r="4" fill="#fff"/>
+            </g>
+
+            <!-- big score -->
+            <text class="gauge-num" x="140" y="138" text-anchor="middle" font-size="46" font-weight="700" fill="#0f172a">98</text>
+            <text x="140" y="166" text-anchor="middle" font-size="12" font-family="JetBrains Mono, monospace" fill="#94a3b8">/ 100</text>
+          </svg>
+
+          <div class="speedbar" aria-hidden="true"><i></i></div>
+
+          <div class="gauge-foot">
+            <div class="gf-item">
+              <span class="v grad">0,8 с</span>
+              <span class="k">загрузка</span>
+            </div>
+            <div class="gf-item">
+              <span class="v grad">98</span>
+              <span class="k">производительность</span>
+            </div>
+            <div class="gf-item">
+              <span class="v grad">100</span>
+              <span class="k">SEO</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== BLOCK 2 — БЫЛО → СТАЛО ===== -->
+  <section class="compare" id="works">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="sec-tag">// before → after</span>
+        <h2>Что меняется после переезда</h2>
+      </div>
+
+      <!-- big number comparison -->
+      <div class="scoreboard">
+        <div class="score was">
+          <span class="n mono">47</span>
+          <span class="cap">было · Tilda</span>
+        </div>
+        <div class="arrow-mid" aria-hidden="true">
+          <svg width="92" height="40" viewBox="0 0 92 40" fill="none">
+            <defs>
+              <linearGradient id="arrGrad" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0" stop-color="#4f46e5"/>
+                <stop offset="1" stop-color="#06b6d4"/>
+              </linearGradient>
+            </defs>
+            <line x1="6" y1="20" x2="74" y2="20" stroke="url(#arrGrad)" stroke-width="5" stroke-linecap="round"/>
+            <path d="M68 8 L86 20 L68 32" fill="none" stroke="url(#arrGrad)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="score now">
+          <span class="n mono">98</span>
+          <span class="cap">стало · Astro</span>
+        </div>
+      </div>
+
+      <!-- two cards -->
+      <div class="cards">
+        <article class="card was">
+          <span class="strip"></span>
+          <div class="card-top">
+            <span class="name">Было · Тильда</span>
+            <span class="badge slow">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#b91c1c" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+              медленно
+            </span>
+          </div>
+          <div class="stat"><span class="label">PageSpeed</span><span class="val mono">47</span></div>
+          <div class="stat"><span class="label">Загрузка</span><span class="val mono">4,2 секунды</span></div>
+          <div class="stat"><span class="label">Код</span><span class="val mono">тяжёлый</span></div>
+          <div class="meter" aria-hidden="true"><i></i></div>
+          <div class="meter-cap"><span>0</span><span>47 / 100</span></div>
+        </article>
+
+        <article class="card now">
+          <span class="strip"></span>
+          <div class="card-top">
+            <span class="name">Стало · Astro</span>
+            <span class="badge fast">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#047857" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4 13h6l-1 9 9-13h-6l1-7Z"/></svg>
+              быстро
+            </span>
+          </div>
+          <div class="stat"><span class="label">PageSpeed</span><span class="val mono hi">98</span></div>
+          <div class="stat"><span class="label">Загрузка</span><span class="val mono">0,8 секунды</span></div>
+          <div class="stat"><span class="label">Код</span><span class="val mono">чистый статический</span></div>
+          <div class="meter" aria-hidden="true"><i></i></div>
+          <div class="meter-cap"><span>0</span><span>98 / 100</span></div>
+        </article>
+      </div>
+
+      <!-- checklist -->
+      <div class="checklist">
+        <div class="check">
+          <span class="ck" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>
+          Дизайн один в один
+        </div>
+        <div class="check">
+          <span class="ck" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>
+          Те же тексты, формы и заявки
+        </div>
+        <div class="check">
+          <span class="ck" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>
+          Домен, аналитика и метрики на месте
+        </div>
+      </div>
+
+      <div class="cta-wrap" id="audit">
+        <a href="#" class="btn btn-primary">
+          Получить аудит скорости
+          <svg class="arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== FOOTER ===== -->
+  <footer>
+    <div class="wrap">
+      <span class="brand">Ed<b>Max</b></span>
+      <span class="fnote">// перенос с Тильды на Astro · скорость и SEO</span>
+    </div>
+  </footer>
+
+</body>
+</html>
