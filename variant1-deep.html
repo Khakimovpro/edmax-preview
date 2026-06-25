@@ -65,6 +65,7 @@
     html { scroll-behavior: auto; }
     .js .reveal, .reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
     .stat-card__x { animation: none !important; }
+    .hdr-spin, .spinner { animation: none !important; }
   }
 
   /* ===== Верхняя панель ===== */
@@ -184,47 +185,77 @@
   .section__head p { margin: 14px auto 0; max-width: 52ch; color: var(--ink-soft); font-size: 17px; }
 
   /* ===== Гонка загрузки (фишка) ===== */
-  .race { max-width: 940px; margin: 0 auto; }
-  .race__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .race { max-width: 960px; margin: 0 auto; }
+  .race__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: start; }
   @media (max-width: 720px) { .race__grid { grid-template-columns: 1fr; } }
   .lane { border: 1px solid var(--line); border-radius: var(--radius); background: #fff;
     box-shadow: var(--shadow); overflow: hidden; }
   .lane--win { border: 1.5px solid var(--accent); box-shadow: 0 2px 4px rgba(37,99,235,.06), 0 16px 38px rgba(37,99,235,.12); }
+  .lane--slow { border-color: #f0d9d9; }
   .lane__top { display: flex; align-items: center; justify-content: space-between;
     padding: 12px 16px; border-bottom: 1px solid var(--line); background: var(--bg-tint); }
+  .lane--slow .lane__top { background: #fdf4f4; }
   .lane__name { font-size: 14px; font-weight: 700; color: var(--ink); display: flex; align-items: center; gap: 8px; }
   .lane__badge { font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 999px;
-    background: #eef1f5; color: var(--ink-mute); opacity: 0; transition: opacity .25s ease; }
+    background: #eef1f5; color: var(--ink-mute); opacity: 0; transition: opacity .25s ease;
+    display: inline-flex; align-items: center; gap: 6px; }
   .lane.done .lane__badge { opacity: 1; }
-  .lane--win .lane.done .lane__badge, .lane--win.done .lane__badge { background: var(--accent-soft); color: var(--accent-hover); }
-  .lane--slow.done .lane__badge { background: #fbeaea; color: #b91c1c; }
+  .lane--win .lane__badge { background: var(--accent-soft); color: var(--accent-hover); }
+  .lane--slow .lane__badge { background: #fbeaea; color: #b91c1c; }
+  /* мини-спиннер «вечной загрузки» в шапке Тильды (крутится всегда) */
+  .hdr-spin { width: 13px; height: 13px; border-radius: 50%; border: 2px solid #f3c9c9;
+    border-top-color: #dc2626; animation: spin .7s linear infinite; flex: 0 0 auto; }
   /* шкала прогресса загрузки */
   .lane__track { height: 6px; background: #eef1f5; }
-  .lane__bar { height: 100%; width: 0; background: var(--ink-mute); }
+  .lane__bar { height: 100%; width: 0; }
+  .lane--slow .lane__bar { background: #e0796f; }
   .lane--win .lane__bar { background: linear-gradient(90deg, var(--accent), #06b6d4); }
-  .lane.run.lane--win .lane__bar { animation: raceFast .85s cubic-bezier(.22,.61,.36,1) forwards; }
-  .lane.run.lane--slow .lane__bar { animation: raceSlow 4.2s linear forwards; }
+  .lane.run.lane--win .lane__bar { animation: raceFast .8s cubic-bezier(.22,.61,.36,1) forwards; }
+  .lane.run.lane--slow .lane__bar { animation: raceSlow 4.8s linear forwards; }
   @keyframes raceFast { from { width: 0 } to { width: 100% } }
-  @keyframes raceSlow { 0%{width:0} 12%{width:14%} 22%{width:15%} 40%{width:42%} 52%{width:44%}
-    70%{width:66%} 80%{width:68%} 100%{width:100%} }
+  @keyframes raceSlow { 0%{width:0} 10%{width:9%} 20%{width:11%} 34%{width:30%} 46%{width:33%}
+    60%{width:52%} 72%{width:55%} 86%{width:74%} 94%{width:77%} 100%{width:100%} }
   /* тело лейна — мини-страница, которая «появляется» когда загрузка дошла */
-  .lane__body { position: relative; padding: 22px; min-height: 252px; }
+  .lane__body { position: relative; padding: 18px; min-height: 300px; }
   .lane__content { opacity: 0; transition: opacity .35s ease; }
   .lane.done .lane__content { opacity: 1; }
-  .lane__spin { position: absolute; inset: 0; display: grid; place-items: center; }
+  .lane__spin { position: absolute; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 14px; }
   .lane.done .lane__spin { display: none; }
-  /* мини-лендинг внутри браузера, чтобы не было пусто */
-  .mini__nav { display: flex; align-items: center; gap: 8px; padding-bottom: 12px; margin-bottom: 14px; border-bottom: 1px solid var(--line); }
-  .mini__logo { width: 48px; height: 14px; border-radius: 5px; background: #dbe2ea; }
+  .spinner { width: 34px; height: 34px; border-radius: 50%; border: 3px solid #e6e8ec;
+    border-top-color: var(--ink-mute); animation: spin .8s linear infinite; }
+  .lane--slow .spinner { border-color: #f3d6d6; border-top-color: #dc2626; }
+  .lane--win .spinner { border-top-color: var(--accent); }
+  @keyframes spin { to { transform: rotate(360deg) } }
+  .lane__pct { font-size: 13px; font-weight: 700; color: var(--ink-mute); font-variant-numeric: tabular-nums; }
+  .lane--slow .lane__pct { color: #b91c1c; }
+  /* детальный мини-лендинг внутри браузера */
+  .mini__nav { display: flex; align-items: center; gap: 7px; padding-bottom: 12px; border-bottom: 1px solid var(--line); }
+  .mini__logo { display: flex; align-items: center; gap: 6px; }
+  .mini__logo i { width: 16px; height: 16px; border-radius: 5px; background: var(--accent); display: block; }
+  .mini__logo b { width: 38px; height: 9px; border-radius: 4px; background: #cdd5df; display: block; }
   .mini__sp { flex: 1; }
-  .mini__menu { width: 26px; height: 8px; border-radius: 4px; background: #eef1f5; }
-  .mini__btn { width: 124px; height: 34px; border-radius: 8px; margin-top: 16px; background: #cbd5e1; }
-  .lane--win .mini__btn { background: var(--accent); }
-  .mini__cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 16px; }
-  .mini__card { height: 48px; border-radius: 8px; background: #eef1f5; border: 1px solid var(--line); }
-  .lane--win .mini__card:first-child { background: var(--accent-soft); border-color: #d6e2ff; }
+  .mini__menu { width: 22px; height: 7px; border-radius: 4px; background: #e7ebf1; }
+  .mini__navbtn { width: 40px; height: 18px; border-radius: 6px; background: var(--accent-soft); border: 1px solid #d6e2ff; }
+  .mini__hero { margin-top: 14px; border-radius: 10px; padding: 16px; min-height: 92px; display: flex;
+    flex-direction: column; gap: 8px; position: relative; overflow: hidden;
+    background: linear-gradient(135deg, #e0e9ff 0%, #eef0ff 55%, #f2e9ff 100%); }
+  .mini__hero::after { content: ""; position: absolute; right: -24px; top: -24px; width: 76px; height: 76px;
+    border-radius: 50%; background: rgba(37,99,235,.14); }
+  .mini__hbar { height: 10px; border-radius: 5px; background: rgba(255,255,255,.85); position: relative; z-index: 1; }
+  .mini__hbar--lg { width: 62%; height: 13px; }
+  .mini__hbar--md { width: 44%; }
+  .mini__hbtn { margin-top: 4px; width: 96px; height: 26px; border-radius: 7px; background: var(--accent);
+    box-shadow: 0 4px 10px rgba(37,99,235,.3); position: relative; z-index: 1; }
+  .mini__cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 14px; }
+  .mini__card { border: 1px solid var(--line); border-radius: 9px; padding: 10px; display: flex; flex-direction: column; gap: 6px; }
+  .mini__ic { width: 20px; height: 20px; border-radius: 6px; background: var(--accent-soft); }
+  .mini__card:nth-child(2) .mini__ic { background: #e6f7ee; }
+  .mini__card:nth-child(3) .mini__ic { background: #fdeede; }
+  .mini__cl { height: 7px; border-radius: 4px; background: #e7ebf1; width: 100%; }
+  .mini__cl--sm { width: 60%; }
   /* вердикт под мини-страницей */
-  .lane__verdict { margin-top: 16px; padding-top: 13px; border-top: 1px dashed var(--line);
+  .lane__verdict { margin-top: 14px; padding-top: 13px; border-top: 1px dashed var(--line);
     font-size: 13.5px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
   .lane--slow .lane__verdict { color: #b91c1c; }
   .lane--win .lane__verdict { color: var(--accent-hover); }
@@ -232,21 +263,27 @@
   .race__constructors { text-align: center; max-width: 640px; margin: 22px auto 0;
     font-size: 14.5px; color: var(--ink-soft); line-height: 1.55; }
   .race__constructors b { color: var(--ink); }
-  .spinner { width: 30px; height: 30px; border-radius: 50%; border: 3px solid #e6e8ec;
-    border-top-color: var(--ink-mute); animation: spin .8s linear infinite; }
-  .lane--win .spinner { border-top-color: var(--accent); }
-  @keyframes spin { to { transform: rotate(360deg) } }
-  .race__controls { margin-top: 22px; display: flex; align-items: center; justify-content: center; gap: 14px; flex-wrap: wrap; }
+  /* факт-callout (стат Google) */
+  .race__fact { max-width: 640px; margin: 18px auto 0; display: flex; align-items: center; gap: 12px;
+    background: #fdf4f4; border: 1px solid #f4dada; border-radius: var(--radius-sm); padding: 14px 18px;
+    color: #7f1d1d; font-size: 14.5px; line-height: 1.5; }
+  .race__fact svg { flex: 0 0 auto; color: #dc2626; }
+  .race__fact b { font-weight: 800; }
+  .race__fact span { color: #b91c1c; opacity: .75; font-size: 13px; }
+  .race__controls { margin-top: 24px; display: flex; align-items: center; justify-content: center; gap: 14px; flex-wrap: wrap; }
   /* полоска веса страницы */
   .weight { max-width: 720px; margin: 30px auto 0; display: grid; gap: 14px; }
   .weight__row { display: grid; grid-template-columns: 110px 1fr auto; align-items: center; gap: 14px; }
   .weight__name { font-size: 14px; font-weight: 600; color: var(--ink-soft); }
-  .weight__track { height: 14px; border-radius: 999px; background: #eef1f5; overflow: hidden; }
-  .weight__fill { height: 100%; width: 0; border-radius: 999px; transition: width 1.1s ease; }
-  .weight__fill--slow { background: var(--ink-mute); }
+  .weight__track { height: 16px; border-radius: 999px; background: #eef1f5; overflow: hidden; }
+  .weight__fill { height: 100%; width: 0; border-radius: 999px; transition: width 1.2s cubic-bezier(.22,.61,.36,1); }
+  .weight__fill--slow { background: linear-gradient(90deg, #ef4444, #f97316); }
   .weight__fill--fast { background: linear-gradient(90deg, var(--accent), #06b6d4); }
-  .weight__val { font-size: 14px; font-weight: 700; color: var(--ink); min-width: 64px; text-align: right; }
-  .weight__cap { text-align: center; font-size: 13px; color: var(--ink-mute); margin-top: 6px; }
+  .weight__val { font-size: 14px; font-weight: 800; color: var(--ink); min-width: 64px; text-align: right; }
+  .weight__badge { display: inline-flex; align-items: center; gap: 7px; margin: 16px auto 0;
+    background: var(--green-soft); border: 1px solid #cdeedd; color: #15803d; font-weight: 700;
+    font-size: 14px; padding: 9px 16px; border-radius: 999px; }
+  .weight__cap { text-align: center; font-size: 13px; color: var(--ink-mute); margin-top: 10px; }
 
   /* ===== Почему это деньги (тезис) ===== */
   .why { max-width: 980px; margin: 0 auto; }
@@ -456,23 +493,26 @@
 
       <div class="race reveal">
         <div class="race__grid">
-          <!-- Дорожка 1: конструктор (медленно) -->
+          <!-- Дорожка 1: Тильда / конструктор (медленно) -->
           <div class="lane lane--slow" id="laneSlow">
             <div class="lane__top">
               <span class="lane__name">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#94a3b8" stroke-width="2"/><path d="M12 7v5l3 2" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/></svg>
+                <span class="hdr-spin" aria-hidden="true"></span>
                 Тильда и конструкторы
               </span>
-              <span class="lane__badge">4,2 с</span>
+              <span class="lane__badge">4,8 с</span>
             </div>
             <div class="lane__track"><div class="lane__bar"></div></div>
             <div class="lane__body">
-              <div class="lane__spin"><span class="spinner"></span></div>
+              <div class="lane__spin"><span class="spinner"></span><span class="lane__pct">загрузка 0%</span></div>
               <div class="lane__content">
-                <div class="mini__nav"><span class="mini__logo"></span><span class="mini__sp"></span><span class="mini__menu"></span><span class="mini__menu"></span><span class="mini__menu"></span></div>
-                <div class="sk sk--lg"></div><div class="sk sk--md"></div><div class="sk sk--sm"></div>
-                <div class="mini__btn"></div>
-                <div class="mini__cards"><span class="mini__card"></span><span class="mini__card"></span><span class="mini__card"></span></div>
+                <div class="mini__nav"><span class="mini__logo"><i></i><b></b></span><span class="mini__sp"></span><span class="mini__menu"></span><span class="mini__menu"></span><span class="mini__menu"></span><span class="mini__navbtn"></span></div>
+                <div class="mini__hero"><span class="mini__hbar mini__hbar--lg"></span><span class="mini__hbar mini__hbar--md"></span><span class="mini__hbtn"></span></div>
+                <div class="mini__cards">
+                  <span class="mini__card"><span class="mini__ic"></span><span class="mini__cl"></span><span class="mini__cl mini__cl--sm"></span></span>
+                  <span class="mini__card"><span class="mini__ic"></span><span class="mini__cl"></span><span class="mini__cl mini__cl--sm"></span></span>
+                  <span class="mini__card"><span class="mini__ic"></span><span class="mini__cl"></span><span class="mini__cl mini__cl--sm"></span></span>
+                </div>
                 <div class="lane__verdict">
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M12 7v5l3 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
                   Лишний код — грузится медленно
@@ -492,12 +532,15 @@
             </div>
             <div class="lane__track"><div class="lane__bar"></div></div>
             <div class="lane__body">
-              <div class="lane__spin"><span class="spinner"></span></div>
+              <div class="lane__spin"><span class="spinner"></span><span class="lane__pct">загрузка 0%</span></div>
               <div class="lane__content">
-                <div class="mini__nav"><span class="mini__logo"></span><span class="mini__sp"></span><span class="mini__menu"></span><span class="mini__menu"></span><span class="mini__menu"></span></div>
-                <div class="sk sk--lg"></div><div class="sk sk--md"></div><div class="sk sk--sm"></div>
-                <div class="mini__btn"></div>
-                <div class="mini__cards"><span class="mini__card"></span><span class="mini__card"></span><span class="mini__card"></span></div>
+                <div class="mini__nav"><span class="mini__logo"><i></i><b></b></span><span class="mini__sp"></span><span class="mini__menu"></span><span class="mini__menu"></span><span class="mini__menu"></span><span class="mini__navbtn"></span></div>
+                <div class="mini__hero"><span class="mini__hbar mini__hbar--lg"></span><span class="mini__hbar mini__hbar--md"></span><span class="mini__hbtn"></span></div>
+                <div class="mini__cards">
+                  <span class="mini__card"><span class="mini__ic"></span><span class="mini__cl"></span><span class="mini__cl mini__cl--sm"></span></span>
+                  <span class="mini__card"><span class="mini__ic"></span><span class="mini__cl"></span><span class="mini__cl mini__cl--sm"></span></span>
+                  <span class="mini__card"><span class="mini__ic"></span><span class="mini__cl"></span><span class="mini__cl mini__cl--sm"></span></span>
+                </div>
                 <div class="lane__verdict">
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="m5 13 4 4L19 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
                   Чистый код — открылось мгновенно
@@ -516,19 +559,25 @@
 
         <p class="race__constructors">Так грузятся <b>Tilda</b>, Wix, Bitrix24, WordPress и другие конструкторы — лишний код и чужие скрипты замедляют каждую страницу. На Astro остаётся только нужное.</p>
 
+        <div class="race__fact">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M10.3 3.9 2.4 18a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 9v4M12 17h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          <div><b>53% посетителей с телефона уходят,</b> если страница грузится дольше 3 секунд. <span>Данные Google.</span></div>
+        </div>
+
         <!-- Полоска веса страницы (типичный пример) -->
         <div class="weight">
           <div class="weight__row">
-            <span class="weight__name">Конструктор</span>
-            <span class="weight__track"><span class="weight__fill weight__fill--slow" data-w="85"></span></span>
+            <span class="weight__name">Тильда</span>
+            <span class="weight__track"><span class="weight__fill weight__fill--slow" data-w="90"></span></span>
             <span class="weight__val">3,4 МБ</span>
           </div>
           <div class="weight__row">
             <span class="weight__name">Astro</span>
-            <span class="weight__track"><span class="weight__fill weight__fill--fast" data-w="12"></span></span>
+            <span class="weight__track"><span class="weight__fill weight__fill--fast" data-w="11"></span></span>
             <span class="weight__val">0,4 МБ</span>
           </div>
         </div>
+        <div style="text-align:center"><span class="weight__badge"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="m5 13 4 4L19 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg> Страница примерно в 8 раз легче</span></div>
         <p class="weight__cap">Вес страницы — типичные значения. Чем легче страница, тем быстрее она открывается на телефоне и в плохой сети.</p>
       </div>
     </div>
@@ -783,12 +832,34 @@
     if (!slow || !fast || !btn) return;
     var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+    var rafs = [];
+    function clearRafs() { rafs.forEach(function (id) { cancelAnimationFrame(id); }); rafs = []; }
+
+    // ползущий процент загрузки на дорожке (синхронно с длительностью полосы)
+    function animatePct(lane, dur) {
+      var el = lane.querySelector('.lane__pct');
+      if (!el) return;
+      var startTs = null;
+      function step(ts) {
+        if (!startTs) startTs = ts;
+        var p = Math.min((ts - startTs) / dur, 1);
+        el.textContent = 'загрузка ' + Math.round(p * 100) + '%';
+        if (p < 1) rafs.push(requestAnimationFrame(step));
+      }
+      rafs.push(requestAnimationFrame(step));
+    }
+
     function reset() {
-      [slow, fast].forEach(function (l) { l.classList.remove('run', 'done'); });
+      clearRafs();
+      [slow, fast].forEach(function (l) {
+        l.classList.remove('run', 'done');
+        var pct = l.querySelector('.lane__pct'); if (pct) pct.textContent = 'загрузка 0%';
+      });
       // форсим перерисовку, чтобы анимация запустилась заново
       void slow.offsetWidth;
     }
     function finishInstant() {
+      clearRafs();
       [slow, fast].forEach(function (l) { l.classList.add('done'); l.querySelector('.lane__bar').style.width = '100%'; });
     }
     function start() {
@@ -797,6 +868,8 @@
       slow.querySelector('.lane__bar').style.width = '';
       fast.querySelector('.lane__bar').style.width = '';
       slow.classList.add('run'); fast.classList.add('run');
+      animatePct(fast, 800);
+      animatePct(slow, 4800);
     }
     // когда быстрая дорожка домчала — показываем её контент
     fast.querySelector('.lane__bar').addEventListener('animationend', function () { fast.classList.add('done'); });
